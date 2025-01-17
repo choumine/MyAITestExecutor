@@ -1,5 +1,6 @@
 import json
 from zhipuai import ZhipuAI
+import uiautomator2 as u2
 
 client = ZhipuAI(api_key="83c46d602c524ba59abda672915c3154.RhmfBAnZ054E1Lg6")
 
@@ -50,6 +51,41 @@ tools = [
             },
         }
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "click_element_by_xpath",
+            "description": "根据给定的 XPath 点击元素",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "xpath_str": {
+                        "description": "XPath 字符串",
+                        "type": "string"
+                    }
+                },
+                "required": ["xpath_str"]
+            },
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_hierarchy_json",
+            "description": "获取设备的界面层次结构信息并转换为JSON格式。如果未提供设备序列号，将使用默认连接方式。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "device_serial": {
+                        "description": "设备序列号，可选参数",
+                        "type": "string",
+                        "default": ""
+                    }
+                },
+                "required": []
+            }
+        }
+    }
 ]
 
 def get_flight_number(date:str , departure:str , destination:str):
@@ -66,8 +102,39 @@ def get_flight_number(date:str , departure:str , destination:str):
     return { "flight_number":flight_number[departure][destination] }
 
 def get_ticket_price(date:str , flight_number:str):
-    return {"ticket_price": "1000"}
+    return {"ticket_price": "1514"}
 
+def click_element_by_xpath(xpath_str):
+    try:
+        d = u2.connect()  # connect to device
+        d.xpath(xpath_str).click()
+        result = {
+            "status": "success",
+            "message": "操作成功！"
+        }
+        return json.dumps(result)  # 将结果转换为 JSON 字符串
+    except Exception as e:
+        result = {
+            "status": "error",
+            "message": str(e)
+        }
+        return json.dumps(result)
+
+def get_hierarchy_json(device_serial=''):
+    try:
+        # 当 device_serial 为空时，使用默认连接方式连接设备
+        d = u2.connect(device_serial)
+        # 获取设备的界面层次结构信息
+        hierarchy = d.dump_hierarchy()
+        # 将获取到的层次结构信息转换为 json 格式
+        hierarchy_json = json.loads(hierarchy)
+        return hierarchy_json
+    except Exception as e:
+        # 构建错误信息的 json 格式
+        error_json = {
+            "error": str(e)
+        }
+        return error_json
 
 # 解析函数调用并执行
 def parse_function_call(model_response,messages):
@@ -82,6 +149,10 @@ def parse_function_call(model_response,messages):
             function_result = get_flight_number(**json.loads(args))
         if tool_call.function.name == "get_ticket_price":
             function_result = get_ticket_price(**json.loads(args))
+        if tool_call.function.name == "click_element_by_xpath":
+            function_result = click_element_by_xpath(**json.loads(args))
+        if tool_call.function.name == "get_hierarchy_json":
+            function_result = get_hierarchy_json(**json.loads(args))
         messages.append({
             "role": "tool",
             "content": f"{json.dumps(function_result)}",
@@ -112,8 +183,18 @@ def main():
     response = client.chat.completions.create(model="glm-4-flash", messages=messages, tools=tools)
     parse_function_call(response, messages)
 
-    # 假设用户问无关问题
-    messages.append({"role": "user", "content": "讲一个山西历史故事"})
+    # # 用户问无关问题
+    # messages.append({"role": "user", "content": "讲一个山西历史故事"})
+    # response = client.chat.completions.create(model="glm-4-flash", messages=messages, tools=tools)
+    # parse_function_call(response, messages)
+
+    # 调用函数点击Xpath
+    messages.append({"role": "user", "content": "点击这个Xpath：\"//*[@resource-id='com.android.contacts:id/one']\""})
+    response = client.chat.completions.create(model="glm-4-flash", messages=messages, tools=tools)
+    parse_function_call(response, messages)
+
+    # 调用函数点击Xpath
+    messages.append({"role": "user", "content": "获取当前设备的界面层次结构信息"})
     response = client.chat.completions.create(model="glm-4-flash", messages=messages, tools=tools)
     parse_function_call(response, messages)
 
