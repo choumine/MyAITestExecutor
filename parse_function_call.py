@@ -120,21 +120,35 @@ def click_element_by_xpath(xpath_str):
         }
         return json.dumps(result)
 
+
 def get_hierarchy_json(device_serial=''):
+    """
+    获取设备的界面层次结构信息并转换为 JSON 格式。
+
+    :param device_serial: 设备序列号，可选参数。如果为空，则使用默认连接方式。
+    :return: 包含界面层次结构信息的 JSON 对象，或包含错误信息的 JSON 对象。
+    """
     try:
-        # 当 device_serial 为空时，使用默认连接方式连接设备
-        d = u2.connect(device_serial)
+        # 连接设备
+        if device_serial:
+            d = u2.connect(device_serial)
+        else:
+            d = u2.connect()
+        # 检查设备是否连接成功
+        if not d.device_info:
+            raise Exception("设备连接失败")
         # 获取设备的界面层次结构信息
         hierarchy = d.dump_hierarchy()
-        # 将获取到的层次结构信息转换为 json 格式
-        hierarchy_json = json.loads(hierarchy)
+        # 将层次结构信息转换为 JSON 格式
+        hierarchy_json = {
+            "hierarchy": hierarchy
+        }
         return hierarchy_json
     except Exception as e:
-        # 构建错误信息的 json 格式
-        error_json = {
+        # 返回错误信息
+        return {
             "error": str(e)
         }
-        return error_json
 
 # 解析函数调用并执行
 def parse_function_call(model_response,messages):
