@@ -2,7 +2,18 @@
 
 import sys
 import os
+import logging
 from zhipuai import ZhipuAI
+
+# 配置 logging
+logging.basicConfig(
+    level=logging.INFO,  # 设置日志级别为 INFO
+    format="%(asctime)s - %(levelname)s - %(message)s",  # 设置日志格式
+    handlers=[
+        logging.StreamHandler(sys.stdout)  # 将日志输出到控制台
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # 从环境变量中读取API密钥
 api_key = os.getenv("ZHIPUAI_API_KEY")
@@ -23,6 +34,12 @@ dialogue_history = [
 # 设置最大对话历史长度
 MAX_HISTORY_LENGTH = 10
 
+# 函数：打印 dialogue_history 的变化
+def log_dialogue_history():
+    logger.info("当前对话历史：")
+    for entry in dialogue_history:
+        logger.info(f"{entry['role']}: {entry['content']}")
+    logger.info("")  # 添加空行分隔
 
 # 函数：获取API响应
 def get_api_response(messages):
@@ -35,7 +52,6 @@ def get_api_response(messages):
         stream=True
     )
 
-
 # 函数：处理API响应
 def process_response(response):
     assistant_response = ""
@@ -43,11 +59,12 @@ def process_response(response):
         chunk_content = chunk.choices[0].delta.content
         print(chunk_content, end="", flush=True)  # 实时输出助手响应
         assistant_response += chunk_content
+    print("\n")  # 在助手响应完成后添加换行符
     return assistant_response
-
 
 # 函数：发送消息并获取响应
 def send_message(message):
+    global dialogue_history
     dialogue_history.append({"role": "user", "content": message})
 
     # 如果对话历史超过最大长度，删除最早的对话记录（保留系统消息）
@@ -58,9 +75,11 @@ def send_message(message):
         response = get_api_response(dialogue_history)
         assistant_response = process_response(response)
         dialogue_history.append({"role": "assistant", "content": assistant_response})
-    except Exception as e:
-        print(f"发生错误: {e}", file=sys.stderr)
 
+        # 记录 dialogue_history 的变化
+        log_dialogue_history()
+    except Exception as e:
+        logger.error(f"发生错误: {e}", exc_info=True)
 
 # 主循环：实现多轮对话
 while True:
@@ -76,7 +95,17 @@ while True:
         print("输入不能为空，请重新输入。")
         continue
 
+    # 检查用户输入是否为修改系统角色的命令
+    if user_input.lower() == '修改系统角色':
+        new_system_content = input("请输入新的系统角色内容：")
+        if new_system_content.strip():
+            dialogue_history[0]["content"] = new_system_content
+            print("系统角色内容已更新。")
+            continue
+        else:
+            print("输入不能为空，请重新输入。")
+            continue
+
     # 发送用户输入并获取助手响应
     print("助手：", end="")
     send_message(user_input)
-    print("\n")  # 在助手响应完成后添加换行符
