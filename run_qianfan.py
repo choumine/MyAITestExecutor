@@ -7,7 +7,6 @@ import uiautomator2 as u2
 def get_hierarchy_json(device_serial=''):
     """
     获取设备的界面层次结构信息并转换为 JSON 格式。
-
     :param device_serial: 设备序列号，可选参数。如果为空，则使用默认连接方式。
     :return: 包含界面层次结构信息的字典，或包含错误信息的字典。
     """

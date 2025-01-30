@@ -12,9 +12,7 @@
 输出：{"xpath": "//*[@resource-id='com.android.contacts:id/star']"}
 
 ----------
-
-你是一个手机界面hierarchy分析程序，以下是手机界面的hierarchy，你要找出“按键1”的Xpath，注意只要Xpath，不要有其他信息。
-
+当前UI层级信息：
 <?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
 <hierarchy rotation="0">
   <node index="0" text="" resource-id="" class="android.widget.FrameLayout" package="com.android.contacts" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" visible-to-user="true" bounds="[0,0][1272,2800]" drawing-order="0" hint="" display-id="0">
@@ -256,3 +254,39 @@
   </node>
 </hierarchy>
 
+你是一个专业的手机界面分析助手，根据UI层级生成XPath表达式。
+接下来我会给你一些任务描述，你要根据当前UI层级信息和任务描述找到对应元素的Xpath。
+
+生成要求：
+1. 优先检查resource-id、content-desc、text属性
+2. 使用简洁的XPath语法
+3. 输出格式：//*[...]
+4. 不要输出其他信息
+
+提示：
+在手机拨号盘界面按键，
+"*"、"star"、"星"是相同意义。
+"#"、"pound"、"井"是相同意义。
+"0"、"zero"、"零"是相同意义。
+
+举例：
+输入：按键"*"
+输出：{"xpath": "//*[@resource-id='com.android.contacts:id/star']"}
+
+举例：
+输入：点击拨号
+输出：//*[@content-desc="拨号"]
+
+你的任务是：
+按键"0"
+按键"1"
+按键"2"
+按键"3"
+按键"4"
+按键"5"
+按键"6"
+按键"7"
+按键"8"
+按键"9"
+按键"*"
+按键"#"
