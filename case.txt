@@ -1,3 +1,5 @@
+典型用例：{"test_case_id":"NWS_Smoke_001","description":"按照instructions描述顺序执行，过程中一旦出错立刻停止。","instructions":["列出ADB设备信息","连接ADB设备","停止当前设备上所有应用","点击拨号","输入*#06#","IMEI1是15位，且不全是0；IMEI2是15位，且不全是0"],"output_requirements":"最后用文本表格的形式呈现，内容包括“用例编号”、“执行结果”、“备注”"}
+
 字段1
 NWS_Smoke_001
 IMEI核查
